@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text&display=swap');
+
+body {
+    font-family: "Crimson Text", Georgia, "Times New Roman", Times, serif;
+    color: #333333;
+    background-color: #f4f4f4;
+}
+
+.thumbnail {
+    border: solid 2px #333366;
+}
+
+.dir_thumb {
+    border: solid 2px #333366;
+    vertical-align: middle;
+}
+
+a {
+    text-decoration: none;
+    color: #333399;
+}
+
+.caption {
+    padding: 10px;
+    text-align: center;
+}
+
+td.prev {
+    text-align: left;
+}
+
+td.next {
+    text-align: right;
+}
+
+td.prev, td.next {
+    width: 100px;
+    vertical-align: top;
+    padding-top: 20px;
+}
+
+.phototitle {
+    text-decoration: none;
+    font-size: 130%;
+}
+
+.fromlink {
+    text-decoration: none;
+    font-size: 75%;
+    color: #333399;
+}
+
+.exiflink {
+    font-size: 55%;
+}
+
+.collapsedexif {
+    display:none;
+}
+
+.expandedexif {
+    display:inline;
+}
+
+.datebox h3 {
+    font-size: medium;
+    font-weight: 900;
+    margin-bottom: 0;
+}
+
+.datecontents {
+    width: 90%;
+    margin-left:5%;
+    margin-right:5%;
+}
+
+.datetitles {
+    width: 90%;
+    margin-left:3%;
+    font-size: larger;
+    font-weight: bold;
+    margin-bottom:.5em;
+    margin-top:1em;
+}
+
+.datecomment {
+    margin-left:6%;
+    margin-right:5%;
+    margin-bottom: 1.5em;
+}
+
+.footer_section {
+	border-left:2px;
+	border-right:2px;
+	margin-top:0;
+}
+
+.directory_section {
+    margin-top:2em;
+
+    margin-right:0;
+    padding-right:2em;
+    margin-bottom:2em;
+    line-height:300%;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 320px);
+    grid-auto-rows: 130px;
+    justify-content: center;
+    align-items: center;
+}
+
+.directory_entry {
+    border-bottom: 0.5px solid;
+    height: 100%;
+    align-items: center;
+    display: grid;
+    grid-template-columns: 120px 200px
+}
+
+.directory_inner {
+    padding-left: 10px;
+    height: 130px;
+    text-align: center;
+}
+
+.directory_innerer {
+    height: 100%;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+}
+
+.directory_name {
+    padding-left: 10px;
+    text-align: left;
+}
+
+.image_section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 250px);
+    grid-auto-rows: 260px;
+    justify-content: center;
+    align-items: center;
+    margin-top:3em;
+    margin-bottom:0;
+}
+
+.image_entry {
+    height: 100%;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+}
+
+.image_inner {
+    display: inline;
+    width: 250px;
+}
+
+.terminus_est {
+    clear: all;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 100px 750px 100px;
+    justify-content: center;
+    align-items: top;
+}
+
+.top {
+    display: none;
+}
+
+.side_left {
+    padding-top: 20px;
+    justify-self: left;
+}
+
+.side_right {
+    padding-top: 20px;
+    justify-self: right;
+}
+
+.top {
+    grid-template-columns: 1fr 1fr;
+}
+
+.top_left {
+    justify-self: left;
+}
+
+.top_right {
+    justify-self: right;
+}
+
+@media only screen and (max-width: 1000px) {
+    .top {
+        display: grid;
+    }
+
+    .side_left {
+        display: none;
+    }
+
+    .side_right {
+        display: none;
+    }
+
+    .container {
+        grid-template-columns: 750px;
+    }
+}
+
+@media only screen and (max-width: 750px) {
+    .container {
+        grid-template-columns: 100%;
+    }
+
+    .itself {
+        width: 100%;
+    }
+}
+
