@@ -23,11 +23,14 @@ def traverse_dir(s_dir):
     for i, s_photo in enumerate(sorted(s_photos)):
         preview_sizes[s_photo] = traverse_photo(
             s_photo,
-            s_prev = s_photos[i-1] if i > 0 else null,
-            s_next = s_photos[i+1] if i < len(photos)-1 else null)
+            s_prev = s_photos[i-1] if i > 0 else None,
+            s_next = s_photos[i+1] if i < len(s_photos)-1 else None)
 
     s_preview = s_dir / '.preview.jpeg'
-    preview_size = resize_photo(s_preview, DIR)
+    if s_preview.exists():
+        preview_size = resize(s_preview, t_dirdir(s_dir) / '.preview.jpeg', DIR)
+    else:
+        preview_size = None
 
     subdir_sizes = {}
     for s_subdir in [p for p in s_dir.iterdir() if p.is_dir()]:
@@ -46,7 +49,7 @@ def traverse_photo(s_photo, s_prev, s_next):
     create_photo_dir(s_photo)
     preview_size = render_preview(s_photo)
     view_size = render_view(s_photo)
-    render_full(s_photo)
+    render_photo(s_photo)
 
     render_photo_page(s_photo, view_size, s_prev, s_next)
     return preview_size
@@ -64,6 +67,7 @@ def render_view(s_photo):
     return resize(s_photo, t, VIEW)
 
 def render_photo_page(s_photo, view_size, s_prev, s_next):
+    t_photo_page = t_photopage(s_photo)
     if is_stale(s_photo, t_photo_page):
         # TODO
         print(f'* {t_photo_page}')
@@ -71,7 +75,8 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
         print(f'  {t_photo_page}')
 
 def render_dir_page(s_dir, preview_sizes, subdir_sizes):
-    if is_stale(s_photo, t_dir_page):
+    t_dir_page = t_dirpage(s_dir)
+    if is_stale(s_dir, t_dir_page):
         # TODO
         print(f'* {t_dir_page}')
     else:
@@ -122,12 +127,38 @@ def target(s):
 def targetize(part):
     return re.sub(r'^\d\d_', '', part)
 
-def t_dirdir(): pass
-def t_photodir(): pass
+def t_dirdir(s):
+    return target(s)
+
+def t_dirpage(s):
+    return t_dirdir(s) / 'index.html'
+
+def t_photodir(s):
+    return target(s.parent / s.stem)
+
+def t_photopage(s):
+    return t_photodir(s) / 'index.html'
 
 def t_photo(s, suffix):
-    t = target(s)
-    return t.with_stem(t.stem + suffix)
+    t_dir = t_photodir(s)
+    name = jpeg_name(t_dir)
+    return t_dir / f'{name}{suffix}.jpeg'
+
+def jpeg_name(t_dir):
+    if is_boring(t_dir.name):
+        rel_parts = t_dir.relative_to(target_root).parts
+        year = rel_parts[0]
+        top = rel_parts[1]
+        rest = rel_parts[2:-1]
+        return '_'.join([top, year] + list(rest) + [t_dir.name])
+    else:
+        return t_dir.name
+
+def is_boring(name):
+    if re.match(r'^\d\d\d\d$', name):
+        return False  # Years are not boring.
+    else:
+        return re.match(r'^\d*$', name)  # Other numbers are boring.
 
 if __name__ == '__main__':
     main()
