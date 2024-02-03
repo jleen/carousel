@@ -76,7 +76,7 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
         (w, h) = lazy_size(view_size, t_photo(s_photo, '_view'))
         breadcrumbs = [ {'title': title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
-                        for p in t.parent.parent.relative_to(target_root).parents ]
+                        for p in t.parent.relative_to(target_root).parents ]
 
         context = {
             'title': title(t.parent.name),
