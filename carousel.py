@@ -29,7 +29,7 @@ def traverse_dir(s_dir):
 
     s_preview = s_dir / '.preview.jpeg'
     if s_preview.exists():
-        preview_size = resize(s_preview, t_dirdir(s_dir) / '.preview.jpeg', DIR)
+        preview_size = resize(s_preview, t_dirpreview(s_dir), DIR)
     else:
         preview_size = None
 
@@ -39,7 +39,7 @@ def traverse_dir(s_dir):
 
     render_dir_page(s_dir, preview_sizes, subdir_sizes)
     return preview_size
-    
+
 def create_target_dir(s_dir):
     t_dirdir(s_dir).mkdir(exist_ok=True)
 
@@ -78,7 +78,7 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
             'page_title': title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
             'gallery_title': GALLERY_NAME,
-            'breadcrumbs': list(reversed(breadcrumbs)),
+            'breadcrumbs': reversed(breadcrumbs),
             'prev': f'{t_photodir(s_prev).relative_to(t.parent, walk_up=True)}/' if s_prev else None,
             'next': f'{t_photodir(s_next).relative_to(t.parent, walk_up=True)}/' if s_next else None,
             'full_photo_url': t_photo(s_photo, '').name,
@@ -87,18 +87,39 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
             'height': h,
             'width': w
         }
-        print(context)
         print(f'* {t}')
     else:
         print(f'  {t}')
 
 def render_dir_page(s_dir, preview_sizes, subdir_sizes):
-    t_dir_page = t_dirpage(s_dir)
-    if is_stale(s_dir, t_dir_page):
-        # TODO
-        print(f'* {t_dir_page}')
+    t = t_dirpage(s_dir)
+    if is_stale(s_dir, t):
+        breadcrumbs = [ {'title': title(p.name),
+                         'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
+                        for p in t.parent.relative_to(target_root).parents ]
+        subdirs = [ {'link': t_dirdir(s_dir).relative_to(t.parent),
+                     'preview': t_dirpreview(s_dir).relative_to(t.parent),
+                     'height': subdir_sizes[f][0],
+                     'width': subdir_sizes[f][1] }
+                   for f in s_dir.iterdir() if f.is_dir() ]
+        photos = [ {'link': t_photodir(f).relative_to(t.parent),
+                    'preview': t_photo(f, '_preview').relative_to(t.parent),
+                    'caption': caption(target(f).name.stem),
+                    'height': preview_sizes[f][0],
+                    'width': preview_sizes[f][1] }
+                  for f in s_dir.iterdir() if f.is_file() and not f.name.startswith('.') ]
+        context = {
+            'page_title': title(t.parent.name),
+            'gallery_title': GALLERY_NAME,
+            'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
+            'breadcrumbs': reverse(breadcrumbs),
+            'subdirs': subdirs,
+            'photos': photos
+        }
+        print(context)
+        print(f'* {t}')
     else:
-        print(f'  {t_dir_page}')
+        print(f'  {t}')
 
 def is_stale(s, t):
     if s.is_dir():  # BUGBUG: Recursive containment?
@@ -151,6 +172,9 @@ def t_dirdir(s):
 def t_dirpage(s):
     return t_dirdir(s) / 'index.html'
 
+def t_dirpreview(s):
+    return t_dirdir(s) / '.preview.jpeg'
+    
 def t_photodir(s):
     return target(s.parent / s.stem)
 
