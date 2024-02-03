@@ -1,6 +1,7 @@
 import re
 import shutil
 
+from PIL import Image
 from pathlib import Path
 
 import appeldryck
@@ -72,7 +73,7 @@ def render_view(s_photo):
 def render_photo_page(s_photo, view_size, s_prev, s_next):
     t = t_photopage(s_photo)
     if is_stale(s_photo, t):
-        (h, w) = view_size
+        (w, h) = lazy_size(view_size, t_photo(s_photo, '_view'))
         breadcrumbs = [ {'title': title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
                         for p in t.parent.parent.relative_to(target_root).parents ]
@@ -104,14 +105,14 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
         subdirs = [ {'link': f'{t_dirdir(f).relative_to(t.parent)}/',
                      'title': title(t_dirdir(f).name),
                      'preview': str(t_dirpreview(f).relative_to(t.parent)),
-                     'height': str(subdir_sizes[f][0]),
-                     'width': str(subdir_sizes[f][1]) }
+                     'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
+                     'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
                    for f in sorted(s_dir.iterdir()) if f.is_dir() ]
         photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
                     'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
                     'caption': caption(target(f).stem),
-                    'height': str(preview_sizes[f][0]),
-                    'width': str(preview_sizes[f][1]) }
+                    'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
+                    'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
                   for f in sorted(s_dir.iterdir()) if f.is_file() and not f.name.startswith('.') ]
         context = {
             'title': title(t.parent.name),
@@ -140,31 +141,28 @@ def copy_css():
 
 def maybe_copy(s, t):
     if is_stale(s, t):
-        # TODO: shutil.copy(s, t)
+        shutil.copy(s, t)
         print(f'* {t}')
     else:
         print(f'  {t}')
 
 def resize(s, t, bounds):
     if is_stale(s, t):
-        size = bounds  # TODO
-        print(f'* {t}')
+        with Image.open(s) as img:
+            img.thumbnail(bounds, resample=Image.Resampling.LANCZOS)
+            img.save(t)
+            print(f'* {t}')
+            return img.size
     else:
-        size = bounds  # TODO
         print(f'  {t}')
-    return size
+        return None
 
-def scaled_size(ss, tt):
-    (sw, sh) = ss
-    (tw, th) = tt
-    ww = sw / tw
-    hh = sh / th
-    # Explicitly return at least one target dimension (prioritizing height)
-    # to avoid embarrassing floating point off-by-one.
-    if (hh >= ww):
-        return (int(sw / hh), th)
+def lazy_size(maybe_size, f):
+    if maybe_size:
+        return maybe_size
     else:
-        return (tw, int(sh / ww))
+        with Image.open(f) as img:
+            return img.size
 
 def target(s):
     rel = s.relative_to(source_root)
