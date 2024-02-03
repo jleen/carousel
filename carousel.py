@@ -3,6 +3,8 @@ import shutil
 
 from pathlib import Path
 
+import appeldryck
+
 
 VIEW = (700, 500)
 PREVIEW = (200, 200)
@@ -73,20 +75,22 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
         (h, w) = view_size
         breadcrumbs = [ {'title': title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
-                        for p in t.parent.relative_to(target_root).parents ]
+                        for p in t.parent.parent.relative_to(target_root).parents ]
+
         context = {
-            'page_title': title(t.parent.name),
+            'title': title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'gallery_title': GALLERY_NAME,
+            'site': GALLERY_NAME,
             'breadcrumbs': reversed(breadcrumbs),
             'prev': f'{t_photodir(s_prev).relative_to(t.parent, walk_up=True)}/' if s_prev else None,
             'next': f'{t_photodir(s_next).relative_to(t.parent, walk_up=True)}/' if s_next else None,
-            'full_photo_url': t_photo(s_photo, '').name,
-            'framed_photo_url': t_photo(s_photo, '_view').name,
+            'photo': t_photo(s_photo, '').name,
+            'view': t_photo(s_photo, '_view').name,
             'caption': caption(t.parent.name),
-            'height': h,
-            'width': w
+            'height': str(h),
+            'width': str(w)
         }
+        t.write_text(appeldryck.preprocess(context, 'photo.html.dryck'))
         print(f'* {t}')
     else:
         print(f'  {t}')
@@ -97,30 +101,34 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
         breadcrumbs = [ {'title': title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
                         for p in t.parent.relative_to(target_root).parents ]
-        subdirs = [ {'link': t_dirdir(s_dir).relative_to(t.parent),
-                     'preview': t_dirpreview(s_dir).relative_to(t.parent),
-                     'height': subdir_sizes[f][0],
-                     'width': subdir_sizes[f][1] }
-                   for f in s_dir.iterdir() if f.is_dir() ]
-        photos = [ {'link': t_photodir(f).relative_to(t.parent),
-                    'preview': t_photo(f, '_preview').relative_to(t.parent),
+        subdirs = [ {'link': f'{t_dirdir(f).relative_to(t.parent)}/',
+                     'title': title(t_dirdir(f).name),
+                     'preview': str(t_dirpreview(f).relative_to(t.parent)),
+                     'height': str(subdir_sizes[f][0]),
+                     'width': str(subdir_sizes[f][1]) }
+                   for f in sorted(s_dir.iterdir()) if f.is_dir() ]
+        photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
+                    'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
                     'caption': caption(target(f).stem),
-                    'height': preview_sizes[f][0],
-                    'width': preview_sizes[f][1] }
-                  for f in s_dir.iterdir() if f.is_file() and not f.name.startswith('.') ]
+                    'height': str(preview_sizes[f][0]),
+                    'width': str(preview_sizes[f][1]) }
+                  for f in sorted(s_dir.iterdir()) if f.is_file() and not f.name.startswith('.') ]
         context = {
-            'page_title': title(t.parent.name),
-            'gallery_title': GALLERY_NAME,
+            'title': title(t.parent.name),
+            'site': GALLERY_NAME,
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
             'breadcrumbs': reversed(breadcrumbs),
             'subdirs': subdirs,
             'photos': photos
         }
+        t.write_text(appeldryck.preprocess(context, 'dir.html.dryck'))
         print(f'* {t}')
     else:
         print(f'  {t}')
 
 def is_stale(s, t):
+    if t.suffix == '.html':
+        return True  # Always refresh HTML, for now.
     if s.is_dir():  # BUGBUG: Recursive containment?
         mtime = max([p.stat().st_mtime for p in s.iterdir()])
     else:

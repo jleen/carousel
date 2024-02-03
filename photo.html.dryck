@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="◊css_dir/carousel.css">
+    <title>◊title - ◊site</title>
+</head>
+
+<body>
+<p>
+    ◊loop{breadcrumbs}{
+    <b><a href="◊link">◊title</a></b>
+    &gt;&gt;
+    }
+    <b>◊title</b>
+</p>
+
+<div class="container">
+    <div class="side_left">
+        ◊if{prev}{
+        <a href="◊prev">&lt;&lt; Previous</a>
+        }
+    </div>
+
+    <div>
+        <div align="center">
+            <div class="top">
+                <div class="top_left">
+                    ◊if{prev}{
+                    <a href="◊prev">&lt;&lt; Previous</a>
+                    }
+                </div>
+                <div class="top_right">
+                    ◊if{next}{
+                    <a href="◊next">Next &gt;&gt;</a>
+                    }
+                </div>
+            </div>
+
+            <a href="◊photo"><img class="itself" src="◊view" height="◊height" width="◊width" border="2" vspace="10" align="middle"></a>
+            <div class="photoTitle"><b>◊caption</b></div><br>
+        </div>
+    </div>
+
+    <div class="side_right">
+        ◊if{next}{
+        <a href="◊next">Next &gt;&gt;</a>
+        }
+    </div>
+</div>
+</body>
+</html>

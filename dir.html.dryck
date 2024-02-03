@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="◊css_dir/carousel.css" />
+
+    <title>◊title - ◊site</title>
+</head>
+
+<body>
+
+<p>
+    ◊loop{breadcrumbs}{
+    <b><a href="◊link">◊title</a></b>
+    &gt;&gt;
+    }
+    <b>◊title</b>
+</p>
+
+<div class="directory_section">
+    ◊loop{subdirs}{
+    <div class="directory_entry">
+        <div class="directory_inner">
+            <div class="directory_innerer">
+                <div>
+                    <a href="◊link"><img src="◊preview" border="2" align="middle" height="◊height" width="◊width" class="dir_thumb" /></a>
+                </div>
+            </div>
+        </div>
+        <div class="directory_name">
+            <a href="◊link">◊title</a>
+        </div>
+    </div>
+    }
+</div>
+
+◊if{photos}{
+<div class="image_section">
+    ◊loop{photos}{
+    <div class="image_entry">
+        <div>
+            <div class="image_inner">
+                <a href="◊link"><img src="◊preview" border="2" class="thumbnail" height="◊height" width="◊width" /></a>
+                <div class="caption"><a href="◊link">◊caption</a></div>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+}
+</body>
+</html>

@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "carousel"
+version = "0.1.0"
+description = ""
+authors = ["John Leen <jleen@saturnvalley.org>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+appeldryck = {path = "../appeldryck", develop=true}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
