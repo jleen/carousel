@@ -10,6 +10,7 @@ DIR = (100, 100)
 
 source_root = Path('/mnt/c/Mirror/Gallery')
 target_root = Path('/home/jleen/gallery')
+GALLERY_NAME = 'Hall of Light'
 
 def main():
     copy_css()
@@ -71,15 +72,15 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
     if is_stale(s_photo, t):
         (h, w) = view_size
         breadcrumbs = [ {'title': title(p.name),
-                         'link': p.relative_to(t.parent.relative_to(target_root), walk_up=True)}
-                        for p in t.relative_to(target_root).parents ]
+                         'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
+                        for p in t.parent.relative_to(target_root).parents ]
         context = {
             'page_title': title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'gallery_title': 'Hall of Light',
-            'breadcrumbs': breadcrumbs,
-            'prev': str(t_photodir(s_prev).relative_to(t.parent, walk_up=True)) + '/' if s_prev else None,
-            'next': str(t_photodir(s_next).relative_to(t.parent, walk_up=True)) + '/' if s_next else None,
+            'gallery_title': GALLERY_NAME,
+            'breadcrumbs': list(reversed(breadcrumbs)),
+            'prev': f'{t_photodir(s_prev).relative_to(t.parent, walk_up=True)}/' if s_prev else None,
+            'next': f'{t_photodir(s_next).relative_to(t.parent, walk_up=True)}/' if s_next else None,
             'full_photo_url': t_photo(s_photo, '').name,
             'framed_photo_url': t_photo(s_photo, '_view').name,
             'caption': caption(t.parent.name),
@@ -172,7 +173,9 @@ def jpeg_name(t_dir):
         return t_dir.name
 
 def title(name):
-    if re.match(r'\w+_20\d\d_\w*_\d*', name):
+    if len(name) == 0:
+        return GALLERY_NAME
+    elif re.match(r'\w+_20\d\d_\w*_\d*', name):
         return name.split('_')[-1]
     else:
         return re.sub(r'^\d\d ', '', name.replace('_', ' '))
