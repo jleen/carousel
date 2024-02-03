@@ -67,12 +67,26 @@ def render_view(s_photo):
     return resize(s_photo, t, VIEW)
 
 def render_photo_page(s_photo, view_size, s_prev, s_next):
-    t_photo_page = t_photopage(s_photo)
-    if is_stale(s_photo, t_photo_page):
-        # TODO
-        print(f'* {t_photo_page}')
+    t = t_photopage(s_photo)
+    if is_stale(s_photo, t):
+        (h, w) = view_size
+        context = {
+            'page_title': title(t.parent.name),
+            'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
+            'gallery_title': 'Hall of Light',
+            'breadcrumbs': None,
+            'prev': str(t_photodir(s_prev).relative_to(t.parent, walk_up=True)) + '/' if s_prev else None,
+            'next': str(t_photodir(s_next).relative_to(t.parent, walk_up=True)) + '/' if s_next else None,
+            'full_photo_url': t_photo(s_photo, '').name,
+            'framed_photo_url': t_photo(s_photo, '_view').name,
+            'caption': caption(t.parent.name),
+            'height': h,
+            'width': w
+        }
+        print(context)
+        print(f'* {t}')
     else:
-        print(f'  {t_photo_page}')
+        print(f'  {t}')
 
 def render_dir_page(s_dir, preview_sizes, subdir_sizes):
     t_dir_page = t_dirpage(s_dir)
@@ -153,6 +167,15 @@ def jpeg_name(t_dir):
         return '_'.join([top, year] + list(rest) + [t_dir.name])
     else:
         return t_dir.name
+
+def title(name):
+    if re.match(r'\w+_20\d\d_\w*_\d*', name):
+        return name.split('_')[-1]
+    else:
+        return re.sub(r'^\d\d ', '', name.replace('_', ' '))
+
+def caption(name):
+    return '' if is_boring(name) else title(name)
 
 def is_boring(name):
     if re.match(r'^\d\d\d\d$', name):
