@@ -104,7 +104,7 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
                    for f in s_dir.iterdir() if f.is_dir() ]
         photos = [ {'link': t_photodir(f).relative_to(t.parent),
                     'preview': t_photo(f, '_preview').relative_to(t.parent),
-                    'caption': caption(target(f).name.stem),
+                    'caption': caption(target(f).stem),
                     'height': preview_sizes[f][0],
                     'width': preview_sizes[f][1] }
                   for f in s_dir.iterdir() if f.is_file() and not f.name.startswith('.') ]
@@ -112,11 +112,10 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
             'page_title': title(t.parent.name),
             'gallery_title': GALLERY_NAME,
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'breadcrumbs': reverse(breadcrumbs),
+            'breadcrumbs': reversed(breadcrumbs),
             'subdirs': subdirs,
             'photos': photos
         }
-        print(context)
         print(f'* {t}')
     else:
         print(f'  {t}')
