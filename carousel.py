@@ -70,11 +70,14 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
     t = t_photopage(s_photo)
     if is_stale(s_photo, t):
         (h, w) = view_size
+        breadcrumbs = [ {'title': title(p.name),
+                         'link': p.relative_to(t.parent.relative_to(target_root), walk_up=True)}
+                        for p in t.relative_to(target_root).parents ]
         context = {
             'page_title': title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
             'gallery_title': 'Hall of Light',
-            'breadcrumbs': None,
+            'breadcrumbs': breadcrumbs,
             'prev': str(t_photodir(s_prev).relative_to(t.parent, walk_up=True)) + '/' if s_prev else None,
             'next': str(t_photodir(s_next).relative_to(t.parent, walk_up=True)) + '/' if s_next else None,
             'full_photo_url': t_photo(s_photo, '').name,
