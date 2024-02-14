@@ -1,5 +1,6 @@
 import re
 import shutil
+import sys
 
 from PIL import Image
 from pathlib import Path
@@ -11,8 +12,8 @@ VIEW = (700, 500)
 PREVIEW = (200, 200)
 DIR = (100, 100)
 
-source_root = Path('/mnt/c/Mirror/Gallery')
-target_root = Path('/home/jleen/gallery')
+source_root = Path(sys.argv[1])
+target_root = Path(sys.argv[2])
 GALLERY_NAME = 'Hall of Light'
 
 def main():
@@ -195,9 +196,13 @@ def jpeg_name(t_dir):
     if is_boring(t_dir.name):
         rel_parts = t_dir.relative_to(target_root).parts
         year = rel_parts[0]
-        top = rel_parts[1]
+        if len(rel_parts) > 2:
+            top = rel_parts[1]
+            preamble = [top, year]
+        else:
+            preamble = [year]
         rest = rel_parts[2:-1]
-        return '_'.join([top, year] + list(rest) + [t_dir.name])
+        return '_'.join(preamble + list(rest) + [t_dir.name])
     else:
         return t_dir.name
 
