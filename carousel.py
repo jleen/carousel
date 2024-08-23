@@ -129,9 +129,9 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
         print(f'  {t}')
 
 def is_stale(s, t):
-    if t.suffix == '.html':
-        return True  # Always refresh HTML, for now.
-    if s.is_dir():  # BUGBUG: Recursive containment?
+    if s.is_dir():
+        # TODO: What if there’s a change in a subdirectory?
+        # How much do we care?
         mtime = max([p.stat().st_mtime for p in s.iterdir()])
     else:
         mtime = s.stat().st_mtime
