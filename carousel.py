@@ -20,10 +20,23 @@ def main():
     copy_css()
     traverse_dir(source_root)
 
+def iter_photos(s_dir):
+    return [p for p in s_dir.iterdir()
+            if p.is_file()
+            and p.suffix == '.jpeg'
+            and not p.name.startswith('.')]
+
+def iter_subdirs(s_dir):
+    return [p for p in s_dir.iterdir()
+            if p.is_dir()]
+
+def is_hidden(s_dir):
+    return s_dir.name.startswith('_')
+
 def traverse_dir(s_dir):
     create_target_dir(s_dir)
 
-    s_photos = [p for p in s_dir.iterdir() if p.is_file() and p.suffix == '.jpeg' and not p.name.startswith('.')]
+    s_photos = iter_photos(s_dir)
     preview_sizes = {}
     for i, s_photo in enumerate(sorted(s_photos)):
         preview_sizes[s_photo] = traverse_photo(
@@ -38,7 +51,7 @@ def traverse_dir(s_dir):
         preview_size = None
 
     subdir_sizes = {}
-    for s_subdir in [p for p in s_dir.iterdir() if p.is_dir()]:
+    for s_subdir in iter_subdirs(s_dir):
         subdir_sizes[s_subdir] = traverse_dir(s_subdir)
 
     render_dir_page(s_dir, preview_sizes, subdir_sizes)
@@ -109,13 +122,13 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
                          'preview': str(t_dirpreview(f).relative_to(t.parent)),
                          'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
                          'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
-                       for f in sorted(s_dir.iterdir()) if f.is_dir() ]
+                       for f in sorted(iter_subdirs(s_dir)) if not is_hidden(f) ]
             photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
                         'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
                         'caption': caption(target(f).stem),
                         'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
                         'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
-                      for f in sorted(s_dir.iterdir()) if f.is_file() and not f.name.startswith('.') ]
+                      for f in sorted(iter_photos(s_dir)) ]
             context = {
                 'title': title(t.parent.name),
                 'site': GALLERY_NAME,
@@ -174,7 +187,10 @@ def target(s):
     return target_root / Path(*[targetize(p) for p in rel.parts])
 
 def targetize(part):
-    return re.sub(r'^\d\d_', '', part)
+    # Strip leading digits, e.g. 02_Foo -> Foo
+    # Also strip leading underscore, e.g. _Bar -> Bar
+    # (The latter is how we indicate a hidden directory.)
+    return re.sub(r'^(\d\d|)_', '', part)
 
 def t_dirdir(s):
     return target(s)
