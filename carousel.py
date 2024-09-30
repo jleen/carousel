@@ -98,35 +98,40 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
         print(f'  {t}')
 
 def render_dir_page(s_dir, preview_sizes, subdir_sizes):
-    t = t_dirpage(s_dir)
-    if is_stale(s_dir, t):
-        breadcrumbs = [ {'title': title(p.name),
-                         'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
-                        for p in t.parent.relative_to(target_root).parents ]
-        subdirs = [ {'link': f'{t_dirdir(f).relative_to(t.parent)}/',
-                     'title': title(t_dirdir(f).name),
-                     'preview': str(t_dirpreview(f).relative_to(t.parent)),
-                     'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
-                     'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
-                   for f in sorted(s_dir.iterdir()) if f.is_dir() ]
-        photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
-                    'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
-                    'caption': caption(target(f).stem),
-                    'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
-                    'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
-                  for f in sorted(s_dir.iterdir()) if f.is_file() and not f.name.startswith('.') ]
-        context = {
-            'title': title(t.parent.name),
-            'site': GALLERY_NAME,
-            'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'breadcrumbs': reversed(breadcrumbs),
-            'subdirs': subdirs,
-            'photos': photos
-        }
-        t.write_text(appeldryck.preprocess(context, 'dir.html.dryck'))
-        print(f'* {t}')
-    else:
-        print(f'  {t}')
+    try:
+        t = t_dirpage(s_dir)
+        if is_stale(s_dir, t):
+            breadcrumbs = [ {'title': title(p.name),
+                             'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
+                            for p in t.parent.relative_to(target_root).parents ]
+            subdirs = [ {'link': f'{t_dirdir(f).relative_to(t.parent)}/',
+                         'title': title(t_dirdir(f).name),
+                         'preview': str(t_dirpreview(f).relative_to(t.parent)),
+                         'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
+                         'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
+                       for f in sorted(s_dir.iterdir()) if f.is_dir() ]
+            photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
+                        'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
+                        'caption': caption(target(f).stem),
+                        'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
+                        'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
+                      for f in sorted(s_dir.iterdir()) if f.is_file() and not f.name.startswith('.') ]
+            context = {
+                'title': title(t.parent.name),
+                'site': GALLERY_NAME,
+                'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
+                'breadcrumbs': reversed(breadcrumbs),
+                'subdirs': subdirs,
+                'photos': photos
+            }
+            t.write_text(appeldryck.preprocess(context, 'dir.html.dryck'))
+            print(f'* {t}')
+        else:
+            print(f'  {t}')
+    except Exception as e:
+        e.add_note(f'while rendering dir page for {s_dir}')
+        raise
+
 
 def is_stale(s, t):
     if s.is_dir():
