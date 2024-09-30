@@ -129,8 +129,7 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
         else:
             print(f'  {t}')
     except Exception as e:
-        e.add_note(f'while rendering dir page for {s_dir}')
-        raise
+        raise RuntimeError(f'Unable to render dir page for {s_dir}') from e
 
 
 def is_stale(s, t):
