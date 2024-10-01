@@ -7,14 +7,11 @@ from pathlib import Path
 
 import appeldryck
 
+import config
 
-VIEW = (700, 500)
-PREVIEW = (200, 200)
-DIR = (100, 100)
 
 source_root = Path(sys.argv[1])
 target_root = Path(sys.argv[2])
-GALLERY_NAME = 'Hall of Light'
 
 def main():
     copy_css()
@@ -30,9 +27,6 @@ def iter_subdirs(s_dir):
     return [p for p in s_dir.iterdir()
             if p.is_dir()]
 
-def is_hidden(s_dir):
-    return s_dir.name.startswith('_')
-
 def traverse_dir(s_dir):
     create_target_dir(s_dir)
 
@@ -46,7 +40,7 @@ def traverse_dir(s_dir):
 
     s_preview = s_dir / '.preview.jpeg'
     if s_preview.exists():
-        preview_size = resize(s_preview, t_dirpreview(s_dir), DIR)
+        preview_size = resize(s_preview, t_dirpreview(s_dir), config.DIR)
     else:
         preview_size = None
 
@@ -78,30 +72,30 @@ def render_photo(s_photo):
 
 def render_preview(s_photo):
     t = t_photo(s_photo, '_preview')
-    return resize(s_photo, t, PREVIEW)
+    return resize(s_photo, t, config.PREVIEW)
 
 def render_view(s_photo):
     t = t_photo(s_photo, '_view')
-    return resize(s_photo, t, VIEW)
+    return resize(s_photo, t, config.VIEW)
 
 def render_photo_page(s_photo, view_size, s_prev, s_next):
     t = t_photopage(s_photo)
     if is_stale(s_photo, t):
         (w, h) = lazy_size(view_size, t_photo(s_photo, '_view'))
-        breadcrumbs = [ {'title': title(p.name),
+        breadcrumbs = [ {'title': config.title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
                         for p in t.parent.relative_to(target_root).parents ]
 
         context = {
-            'title': title(t.parent.name),
+            'title': config.title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'site': GALLERY_NAME,
+            'site': config.GALLERY_NAME,
             'breadcrumbs': reversed(breadcrumbs),
             'prev': f'{t_photodir(s_prev).relative_to(t.parent, walk_up=True)}/' if s_prev else None,
             'next': f'{t_photodir(s_next).relative_to(t.parent, walk_up=True)}/' if s_next else None,
             'photo': t_photo(s_photo, '').name,
             'view': t_photo(s_photo, '_view').name,
-            'caption': caption(t.parent.name),
+            'caption': config.caption(t.parent.name),
             'height': str(h),
             'width': str(w)
         }
@@ -114,24 +108,24 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
     try:
         t = t_dirpage(s_dir)
         if is_stale(s_dir, t):
-            breadcrumbs = [ {'title': title(p.name),
+            breadcrumbs = [ {'title': config.title(p.name),
                              'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
                             for p in t.parent.relative_to(target_root).parents ]
             subdirs = [ {'link': f'{t_dirdir(f).relative_to(t.parent)}/',
-                         'title': title(t_dirdir(f).name),
+                         'title': config.title(t_dirdir(f).name),
                          'preview': str(t_dirpreview(f).relative_to(t.parent)),
                          'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
                          'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
                        for f in sorted(iter_subdirs(s_dir)) if not is_hidden(f) ]
             photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
                         'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
-                        'caption': caption(target(f).stem),
+                        'caption': config.caption(target(f).stem),
                         'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
                         'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
                       for f in sorted(iter_photos(s_dir)) ]
             context = {
-                'title': title(t.parent.name),
-                'site': GALLERY_NAME,
+                'title': config.title(t.parent.name),
+                'site': config.GALLERY_NAME,
                 'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
                 'breadcrumbs': reversed(breadcrumbs),
                 'subdirs': subdirs,
@@ -209,39 +203,9 @@ def t_photopage(s):
 
 def t_photo(s, suffix):
     t_dir = t_photodir(s)
-    name = jpeg_name(t_dir)
+    name = config.jpeg_name(t_dir.relative_to(target_root).parts)
     return t_dir / f'{name}{suffix}.jpeg'
 
-def jpeg_name(t_dir):
-    if is_boring(t_dir.name):
-        rel_parts = t_dir.relative_to(target_root).parts
-        year = rel_parts[0]
-        if len(rel_parts) > 2:
-            top = rel_parts[1]
-            preamble = [top, year]
-        else:
-            preamble = [year]
-        rest = rel_parts[2:-1]
-        return '_'.join(preamble + list(rest) + [t_dir.name])
-    else:
-        return t_dir.name
-
-def title(name):
-    if len(name) == 0:
-        return GALLERY_NAME
-    elif re.match(r'\w+_20\d\d_\w*_\d*', name):
-        return name.split('_')[-1]
-    else:
-        return re.sub(r'^\d\d ', '', name.replace('_', ' '))
-
-def caption(name):
-    return '' if is_boring(name) else title(name)
-
-def is_boring(name):
-    if re.match(r'^\d\d\d\d$', name):
-        return False  # Years are not boring.
-    else:
-        return re.match(r'^\d*$', name)  # Other numbers are boring.
 
 if __name__ == '__main__':
     main()
