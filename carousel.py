@@ -149,7 +149,8 @@ def is_stale(s, t):
     return not t.exists() or t.stat().st_mtime < mtime
 
 def copy_css():
-    maybe_copy(Path('carousel.css'), target_root / 'carousel.css')
+    script_dir = Path(__file__).parent
+    maybe_copy(script_dir / 'carousel.css', target_root / 'carousel.css')
 
 def maybe_copy(s, t):
     if is_stale(s, t):
