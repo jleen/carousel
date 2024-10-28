@@ -10,6 +10,7 @@ import appeldryck
 import config
 
 
+script_root = Path(__file__).parent
 source_root = Path(sys.argv[1])
 target_root = Path(sys.argv[2])
 
@@ -99,7 +100,7 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
             'height': str(h),
             'width': str(w)
         }
-        t.write_text(appeldryck.preprocess(context, 'photo.html.dryck'))
+        t.write_text(appeldryck.preprocess(context, script_root / 'photo.html.dryck'))
         print(f'* {t}')
     else:
         print(f'  {t}')
@@ -116,7 +117,7 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
                          'preview': str(t_dirpreview(f).relative_to(t.parent)),
                          'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
                          'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
-                       for f in sorted(iter_subdirs(s_dir)) if not is_hidden(f) ]
+                       for f in sorted(iter_subdirs(s_dir)) if not config.is_hidden(f) ]
             photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
                         'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
                         'caption': config.caption(target(f).stem),
@@ -131,7 +132,7 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
                 'subdirs': subdirs,
                 'photos': photos
             }
-            t.write_text(appeldryck.preprocess(context, 'dir.html.dryck'))
+            t.write_text(appeldryck.preprocess(context, script_root / 'dir.html.dryck'))
             print(f'* {t}')
         else:
             print(f'  {t}')
