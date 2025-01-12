@@ -2,6 +2,7 @@ import re
 import shutil
 import sys
 
+from functools import cache
 from PIL import Image
 from pathlib import Path
 
@@ -81,7 +82,8 @@ def render_view(s_photo):
 
 def render_photo_page(s_photo, view_size, s_prev, s_next):
     t = t_photopage(s_photo)
-    if is_stale(s_photo, t):
+    # Check the directory for staleness too, because it’s the only way to catch deletions.
+    if is_stale(s_photo, t) or is_stale(s_photo.parent, t):
         (w, h) = lazy_size(view_size, t_photo(s_photo, '_view'))
         breadcrumbs = [ {'title': config.title(p.name),
                          'link': f'{p.relative_to(t.parent.relative_to(target_root), walk_up=True)}/'}
@@ -140,14 +142,22 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
         raise RuntimeError(f'Unable to render dir page for {s_dir}') from e
 
 
-def is_stale(s, t):
+@cache
+def get_mtime(s):
     if s.is_dir():
-        # TODO: What if there’s a change in a subdirectory?
-        # How much do we care?
+        # The directory’s mtime should usually be sufficient.
+        # But check the mtime for each of its contents, too, to handle edge cases
+        # like edited image files.
+        #
+        # TODO: What if there’s a change inside a subdirectory?
+        #       How much do we care?
         mtime = max([p.stat().st_mtime for p in s.iterdir()])
+        return max(mtime, s.stat().st_mtime)
     else:
-        mtime = s.stat().st_mtime
-    return not t.exists() or t.stat().st_mtime < mtime
+        return s.stat().st_mtime
+
+def is_stale(s, t):
+    return not t.exists() or t.stat().st_mtime < get_mtime(s)
 
 def copy_css():
     script_dir = Path(__file__).parent
