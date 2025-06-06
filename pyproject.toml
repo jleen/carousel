@@ -1,18 +1,20 @@
-[tool.poetry]
+[project]
 name = "carousel"
 version = "0.1.0"
 description = ""
-authors = ["John Leen <jleen@saturnvalley.org>"]
+authors = [ { name = "John Leen", email = "jleen@saturnvalley.org" } ]
+requires-python = ">=3.12"
+dependencies = [
+    "appeldryck",
+    "pillow >=10.2.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-appeldryck = {path = "../appeldryck", develop=true}
-pillow = "^10.2.0"
-
-[tool.poetry.scripts]
-carousel = 'carousel:main'
-
+[project.scripts]
+carousel = "carousel:main"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.uv.sources]
+appeldryck = { git = "https://github.com/jleen/appeldryck", rev = "9181a156001561d63a2c8f62208ce3833857ed18" }
