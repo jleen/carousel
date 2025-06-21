@@ -193,6 +193,9 @@ def target(s):
     return target_root / Path(*[targetize(p) for p in rel.parts])
 
 def targetize(part):
+    # Make typography URL-safe.
+    part = part.replace(' ', '_')
+    part = part.replace('’', "'")
     # Strip leading digits, e.g. 02_Foo -> Foo
     # Also strip leading underscore, e.g. _Bar -> Bar
     # (The latter is how we indicate a hidden directory.)

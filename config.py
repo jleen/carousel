@@ -27,7 +27,11 @@ def title(name):
     elif re.match(r'\w+_20\d\d_\w*_\d*', name):
         return name.split('_')[-1]
     else:
-        return re.sub(r'^\d\d ', '', name.replace('_', ' '))
+        # TODO: Well, here we are again.  There are too many kinds of name.
+        # URL sanitization probably needs to proceed in two phases
+        #        source filename -> neutral name -> target filename
+        # But this will do for now.
+        return re.sub(r'^\d\d ', '', name.replace('_', ' ').replace("'", '’'))
 
 def caption(name):
     return '' if is_boring(name) else title(name)
