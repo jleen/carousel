@@ -137,13 +137,15 @@ def render_dir_page(s_dir: Path, preview_sizes: dict[Path, ImgSize | None], subd
                         'width': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[0]),
                         'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
                       for f in sorted(iter_photos(s_dir)) ]
+            parent_name = t.parent.relative_to(target_root).name
             context = {
-                'title': config.title(t.parent.relative_to(target_root).name),
+                'title': config.title(parent_name),
                 'site': config.GALLERY_PAGE_TITLE,
                 'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
                 'breadcrumbs': reversed(breadcrumbs),
                 'subdirs': subdirs,
-                'photos': photos
+                'photos': photos,
+                'root': len(parent_name) == 0
             }
             t.write_text(appeldryck.preprocess(context, script_root / 'dir.html.dryck'))
             print(f'* {t}')
