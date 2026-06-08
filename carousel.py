@@ -138,7 +138,7 @@ def render_dir_page(s_dir: Path, preview_sizes: dict[Path, ImgSize | None], subd
                         'height': str(lazy_size(preview_sizes[f], t_photo(f, '_preview'))[1]) }
                       for f in sorted(iter_photos(s_dir)) ]
             context = {
-                'title': config.title(t.parent.name),
+                'title': config.title(t.parent.relative_to(target_root).name),
                 'site': config.GALLERY_PAGE_TITLE,
                 'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
                 'breadcrumbs': reversed(breadcrumbs),
