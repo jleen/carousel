@@ -119,7 +119,7 @@ def render_dir_page(s_dir: Path, preview_sizes: dict[Path, tuple[int, int] | Non
                          'preview': str(t_dirpreview(f).relative_to(t.parent)),
                          'width': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[0]),
                          'height': str(lazy_size(subdir_sizes[f], t_dirpreview(f))[1]) }
-                       for f in sorted(iter_subdirs(s_dir)) if not config.is_hidden(f) ]
+                       for f in sorted(subdir_sizes.keys()) if not config.is_hidden(f) ]
             photos = [ {'link': f'{t_photodir(f).relative_to(t.parent)}/',
                         'preview': str(t_photo(f, '_preview').relative_to(t.parent)),
                         'caption': config.caption(target(f).stem),
