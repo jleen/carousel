@@ -29,6 +29,13 @@ def iter_subdirs(s_dir: Path) -> list[Path]:
     return [p for p in s_dir.iterdir()
             if p.is_dir()]
 
+def iter_stubs(s_dir: Path) -> list[tuple[Path, tuple[int, int]]]:
+    stub_re = re.compile(r'^(.+)\.stub\.(\d+)x(\d+)$')
+    return [(s_dir / m.group(1), (int(m.group(2)), int(m.group(3))))
+            for p in s_dir.iterdir()
+            if p.is_file()
+            if (m := stub_re.match(p.name))]
+
 def traverse_dir(s_dir: Path) -> tuple[int, int] | None:
     create_target_dir(s_dir)
 
@@ -49,6 +56,8 @@ def traverse_dir(s_dir: Path) -> tuple[int, int] | None:
     subdir_sizes = {}
     for s_subdir in iter_subdirs(s_dir):
         subdir_sizes[s_subdir] = traverse_dir(s_subdir)
+    for (stub, size) in iter_stubs(s_dir):
+        subdir_sizes[stub] = size
 
     render_dir_page(s_dir, preview_sizes, subdir_sizes)
     return preview_size
