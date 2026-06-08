@@ -103,7 +103,7 @@ def render_photo_page(s_photo: Path, view_size: ImgSize | None, s_prev: Path | N
         context = {
             'title': config.title(t.parent.name),
             'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
-            'site': config.GALLERY_NAME,
+            'site': config.GALLERY_PAGE_TITLE,
             'breadcrumbs': reversed(breadcrumbs),
             'prev': f'{t_photodir(s_prev).relative_to(t.parent, walk_up=True)}/' if s_prev else None,
             'next': f'{t_photodir(s_next).relative_to(t.parent, walk_up=True)}/' if s_next else None,
@@ -139,7 +139,7 @@ def render_dir_page(s_dir: Path, preview_sizes: dict[Path, ImgSize | None], subd
                       for f in sorted(iter_photos(s_dir)) ]
             context = {
                 'title': config.title(t.parent.name),
-                'site': config.GALLERY_NAME,
+                'site': config.GALLERY_PAGE_TITLE,
                 'css_dir': str(target_root.relative_to(t.parent, walk_up=True)),
                 'breadcrumbs': reversed(breadcrumbs),
                 'subdirs': subdirs,

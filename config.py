@@ -2,6 +2,7 @@ import re
 
 
 GALLERY_NAME = 'Hall of Light'
+GALLERY_PAGE_TITLE = 'Saturn Valley Hall of Light'
 
 VIEW = (700, 500)
 PREVIEW = (200, 200)
