@@ -15,21 +15,21 @@ script_root = Path(__file__).parent
 source_root = Path(sys.argv[1])
 target_root = Path(sys.argv[2])
 
-def main():
+def main() -> None:
     copy_css()
     traverse_dir(source_root)
 
-def iter_photos(s_dir):
+def iter_photos(s_dir: Path) -> list[Path]:
     return [p for p in s_dir.iterdir()
             if p.is_file()
             and p.suffix == '.jpeg'
             and not p.name.startswith('.')]
 
-def iter_subdirs(s_dir):
+def iter_subdirs(s_dir: Path) -> list[Path]:
     return [p for p in s_dir.iterdir()
             if p.is_dir()]
 
-def traverse_dir(s_dir):
+def traverse_dir(s_dir: Path) -> tuple[int, int] | None:
     create_target_dir(s_dir)
 
     s_photos = iter_photos(s_dir)
@@ -53,13 +53,13 @@ def traverse_dir(s_dir):
     render_dir_page(s_dir, preview_sizes, subdir_sizes)
     return preview_size
 
-def create_target_dir(s_dir):
+def create_target_dir(s_dir: Path) -> None:
     t_dirdir(s_dir).mkdir(exist_ok=True)
 
-def create_photo_dir(s_photo):
+def create_photo_dir(s_photo: Path) -> None:
     t_photodir(s_photo).mkdir(exist_ok=True)
 
-def traverse_photo(s_photo, s_prev, s_next):
+def traverse_photo(s_photo: Path, s_prev: Path | None, s_next: Path | None) -> tuple[int, int] | None:
     create_photo_dir(s_photo)
     preview_size = render_preview(s_photo)
     view_size = render_view(s_photo)
@@ -68,19 +68,19 @@ def traverse_photo(s_photo, s_prev, s_next):
     render_photo_page(s_photo, view_size, s_prev, s_next)
     return preview_size
 
-def render_photo(s_photo):
+def render_photo(s_photo: Path) -> None:
     t = t_photo(s_photo, '')
     maybe_copy(s_photo, t)
 
-def render_preview(s_photo):
+def render_preview(s_photo: Path) -> tuple[int, int] | None:
     t = t_photo(s_photo, '_preview')
     return resize(s_photo, t, config.PREVIEW)
 
-def render_view(s_photo):
+def render_view(s_photo: Path) -> tuple[int, int] | None:
     t = t_photo(s_photo, '_view')
     return resize(s_photo, t, config.VIEW)
 
-def render_photo_page(s_photo, view_size, s_prev, s_next):
+def render_photo_page(s_photo: Path, view_size: tuple[int, int] | None, s_prev: Path | None, s_next: Path | None) -> None:
     t = t_photopage(s_photo)
     # Check the directory for staleness too, because it’s the only way to catch deletions.
     if is_stale(s_photo, t) or is_stale(s_photo.parent, t):
@@ -107,7 +107,7 @@ def render_photo_page(s_photo, view_size, s_prev, s_next):
     else:
         print(f'  {t}')
 
-def render_dir_page(s_dir, preview_sizes, subdir_sizes):
+def render_dir_page(s_dir: Path, preview_sizes: dict[Path, tuple[int, int] | None], subdir_sizes: dict[Path, tuple[int, int] | None]) -> None:
     try:
         t = t_dirpage(s_dir)
         if is_stale(s_dir, t):
@@ -143,7 +143,7 @@ def render_dir_page(s_dir, preview_sizes, subdir_sizes):
 
 
 @cache
-def get_mtime(s):
+def get_mtime(s: Path) -> float:
     if s.is_dir():
         # The directory’s mtime should usually be sufficient.
         # But check the mtime for each of its contents, too, to handle edge cases
@@ -156,21 +156,21 @@ def get_mtime(s):
     else:
         return s.stat().st_mtime
 
-def is_stale(s, t):
+def is_stale(s: Path, t: Path) -> bool:
     return not t.exists() or t.stat().st_mtime < get_mtime(s)
 
-def copy_css():
+def copy_css() -> None:
     script_dir = Path(__file__).parent
     maybe_copy(script_dir / 'carousel.css', target_root / 'carousel.css')
 
-def maybe_copy(s, t):
+def maybe_copy(s: Path, t: Path) -> None:
     if is_stale(s, t):
         shutil.copy(s, t)
         print(f'* {t}')
     else:
         print(f'  {t}')
 
-def resize(s, t, bounds):
+def resize(s: Path, t: Path, bounds: tuple[int, int]) -> tuple[int, int] | None:
     if is_stale(s, t):
         with Image.open(s) as img:
             img.thumbnail(bounds, resample=Image.Resampling.LANCZOS)
@@ -181,18 +181,18 @@ def resize(s, t, bounds):
         print(f'  {t}')
         return None
 
-def lazy_size(maybe_size, f):
+def lazy_size(maybe_size: tuple[int, int] | None, f: Path) -> tuple[int, int]:
     if maybe_size:
         return maybe_size
     else:
         with Image.open(f) as img:
             return img.size
 
-def target(s):
+def target(s: Path) -> Path:
     rel = s.relative_to(source_root)
     return target_root / Path(*[targetize(p) for p in rel.parts])
 
-def targetize(part):
+def targetize(part: str) -> str:
     # Make typography URL-safe.
     part = part.replace(' ', '_')
     part = part.replace('’', "'")
@@ -201,22 +201,22 @@ def targetize(part):
     # (The latter is how we indicate a hidden directory.)
     return re.sub(r'^(\d\d|)_', '', part)
 
-def t_dirdir(s):
+def t_dirdir(s: Path) -> Path:
     return target(s)
 
-def t_dirpage(s):
+def t_dirpage(s: Path) -> Path:
     return t_dirdir(s) / 'index.html'
 
-def t_dirpreview(s):
+def t_dirpreview(s: Path) -> Path:
     return t_dirdir(s) / '.preview.jpeg'
     
-def t_photodir(s):
+def t_photodir(s: Path) -> Path:
     return target(s.parent / s.stem)
 
-def t_photopage(s):
+def t_photopage(s: Path) -> Path:
     return t_photodir(s) / 'index.html'
 
-def t_photo(s, suffix):
+def t_photo(s: Path, suffix: str) -> Path:
     t_dir = t_photodir(s)
     name = config.jpeg_name(t_dir.relative_to(target_root).parts)
     return t_dir / f'{name}{suffix}.jpeg'
