@@ -10,6 +10,8 @@ import appeldryck
 
 import config
 
+type ImgSize = tuple[int, int]
+
 
 script_root = Path(__file__).parent
 source_root = Path(sys.argv[1])
@@ -29,14 +31,14 @@ def iter_subdirs(s_dir: Path) -> list[Path]:
     return [p for p in s_dir.iterdir()
             if p.is_dir()]
 
-def iter_stubs(s_dir: Path) -> list[tuple[Path, tuple[int, int]]]:
+def iter_stubs(s_dir: Path) -> list[tuple[Path, ImgSize]]:
     stub_re = re.compile(r'^(.+)\.stub\.(\d+)x(\d+)$')
     return [(s_dir / m.group(1), (int(m.group(2)), int(m.group(3))))
             for p in s_dir.iterdir()
             if p.is_file()
             if (m := stub_re.match(p.name))]
 
-def traverse_dir(s_dir: Path) -> tuple[int, int] | None:
+def traverse_dir(s_dir: Path) -> ImgSize | None:
     create_target_dir(s_dir)
 
     s_photos = iter_photos(s_dir)
@@ -68,7 +70,7 @@ def create_target_dir(s_dir: Path) -> None:
 def create_photo_dir(s_photo: Path) -> None:
     t_photodir(s_photo).mkdir(exist_ok=True)
 
-def traverse_photo(s_photo: Path, s_prev: Path | None, s_next: Path | None) -> tuple[int, int] | None:
+def traverse_photo(s_photo: Path, s_prev: Path | None, s_next: Path | None) -> ImgSize | None:
     create_photo_dir(s_photo)
     preview_size = render_preview(s_photo)
     view_size = render_view(s_photo)
@@ -81,15 +83,15 @@ def render_photo(s_photo: Path) -> None:
     t = t_photo(s_photo, '')
     maybe_copy(s_photo, t)
 
-def render_preview(s_photo: Path) -> tuple[int, int] | None:
+def render_preview(s_photo: Path) -> ImgSize | None:
     t = t_photo(s_photo, '_preview')
     return resize(s_photo, t, config.PREVIEW)
 
-def render_view(s_photo: Path) -> tuple[int, int] | None:
+def render_view(s_photo: Path) -> ImgSize | None:
     t = t_photo(s_photo, '_view')
     return resize(s_photo, t, config.VIEW)
 
-def render_photo_page(s_photo: Path, view_size: tuple[int, int] | None, s_prev: Path | None, s_next: Path | None) -> None:
+def render_photo_page(s_photo: Path, view_size: ImgSize | None, s_prev: Path | None, s_next: Path | None) -> None:
     t = t_photopage(s_photo)
     # Check the directory for staleness too, because it’s the only way to catch deletions.
     if is_stale(s_photo, t) or is_stale(s_photo.parent, t):
@@ -116,7 +118,7 @@ def render_photo_page(s_photo: Path, view_size: tuple[int, int] | None, s_prev: 
     else:
         print(f'  {t}')
 
-def render_dir_page(s_dir: Path, preview_sizes: dict[Path, tuple[int, int] | None], subdir_sizes: dict[Path, tuple[int, int] | None]) -> None:
+def render_dir_page(s_dir: Path, preview_sizes: dict[Path, ImgSize | None], subdir_sizes: dict[Path, ImgSize | None]) -> None:
     try:
         t = t_dirpage(s_dir)
         if is_stale(s_dir, t):
@@ -179,7 +181,7 @@ def maybe_copy(s: Path, t: Path) -> None:
     else:
         print(f'  {t}')
 
-def resize(s: Path, t: Path, bounds: tuple[int, int]) -> tuple[int, int] | None:
+def resize(s: Path, t: Path, bounds: ImgSize) -> ImgSize | None:
     if is_stale(s, t):
         with Image.open(s) as img:
             img.thumbnail(bounds, resample=Image.Resampling.LANCZOS)
@@ -190,7 +192,7 @@ def resize(s: Path, t: Path, bounds: tuple[int, int]) -> tuple[int, int] | None:
         print(f'  {t}')
         return None
 
-def lazy_size(maybe_size: tuple[int, int] | None, f: Path) -> tuple[int, int]:
+def lazy_size(maybe_size: ImgSize | None, f: Path) -> ImgSize:
     if maybe_size:
         return maybe_size
     else:
